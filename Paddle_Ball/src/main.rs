@@ -10,15 +10,29 @@ struct PaddleBallGame {
     ball_vel: Vec2,
     screen_size: Vec2,
     ball_radius: f32,
+    left_paddle: LeftPaddle, // Add LeftPaddle to the game state
+}
+
+struct LeftPaddle {
+    size_x: f32,
+    size_y: f32,
+    position: Vec2,
+    velocity_y: f32, // Only need vertical velocity (positive or negative)
 }
 
 impl PaddleBallGame {
     fn new(screen_width: f32, screen_height: f32) -> Self {
         PaddleBallGame {
             ball_pos: Vec2::new(screen_width / 2.0, screen_height / 2.0),
-            ball_vel: Vec2::new(450.0, 200.0), // Pixels per second
+            ball_vel: Vec2::new(450.0, 200.0), // Ball speed in pixels per second
             screen_size: Vec2::new(screen_width, screen_height),
             ball_radius: 18.0, // Ball radius
+            left_paddle: LeftPaddle {
+                size_x: 10.0,
+                size_y: 100.0,
+                position: Vec2::new(10.0, screen_height / 2.0 - 50.0), // Position of the paddle on the left
+                velocity_y: 0.0, // Paddle starts stationary
+            },
         }
     }
 }
@@ -38,6 +52,17 @@ impl EventHandler for PaddleBallGame {
             self.ball_vel.y = -self.ball_vel.y; // Reverse vertical velocity
         }
 
+        // Update left paddle position based on velocity
+        self.left_paddle.position.y += self.left_paddle.velocity_y * dt;
+
+        // Keep paddle within screen bounds
+        if self.left_paddle.position.y < 0.0 {
+            self.left_paddle.position.y = 0.0;
+        }
+        if self.left_paddle.position.y + self.left_paddle.size_y > self.screen_size.y {
+            self.left_paddle.position.y = self.screen_size.y - self.left_paddle.size_y;
+        }
+
         Ok(())
     }
 
@@ -49,11 +74,20 @@ impl EventHandler for PaddleBallGame {
             ctx,
             graphics::DrawMode::fill(),
             self.ball_pos,
-            self.ball_radius, // Ball radius
+            self.ball_radius,
             0.1,
             Color::WHITE,
         )?;
         canvas.draw(&ball, DrawParam::default());
+
+        // Draw the left paddle as a rectangle
+        let left_paddle = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(self.left_paddle.position.x, self.left_paddle.position.y, self.left_paddle.size_x, self.left_paddle.size_y),
+            Color::WHITE,
+        )?;
+        canvas.draw(&left_paddle, DrawParam::default());
 
         canvas.finish(ctx)?;
         Ok(())
