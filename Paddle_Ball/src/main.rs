@@ -9,6 +9,7 @@ struct PaddleBallGame {
     ball_pos: Vec2,
     ball_vel: Vec2,
     screen_size: Vec2,
+    ball_radius: f32,
 }
 
 impl PaddleBallGame {
@@ -17,6 +18,7 @@ impl PaddleBallGame {
             ball_pos: Vec2::new(screen_width / 2.0, screen_height / 2.0),
             ball_vel: Vec2::new(300.0, 250.0), // Pixels per second
             screen_size: Vec2::new(screen_width, screen_height),
+            ball_radius: 20.0, // Ball radius
         }
     }
 }
@@ -28,11 +30,11 @@ impl EventHandler for PaddleBallGame {
         // Update ball position
         self.ball_pos += self.ball_vel * dt;
 
-        // Check for collision with screen edges
-        if self.ball_pos.x <= 0.0 || self.ball_pos.x >= self.screen_size.x {
+        // Check for collision with screen edges, considering ball radius
+        if self.ball_pos.x - self.ball_radius <= 0.0 || self.ball_pos.x + self.ball_radius >= self.screen_size.x {
             self.ball_vel.x = -self.ball_vel.x; // Reverse horizontal velocity
         }
-        if self.ball_pos.y <= 0.0 || self.ball_pos.y >= self.screen_size.y {
+        if self.ball_pos.y - self.ball_radius <= 0.0 || self.ball_pos.y + self.ball_radius >= self.screen_size.y {
             self.ball_vel.y = -self.ball_vel.y; // Reverse vertical velocity
         }
 
@@ -47,7 +49,7 @@ impl EventHandler for PaddleBallGame {
             ctx,
             graphics::DrawMode::fill(),
             self.ball_pos,
-            20.0, // Ball radius
+            self.ball_radius, // Ball radius
             0.1,
             Color::WHITE,
         )?;
@@ -59,12 +61,14 @@ impl EventHandler for PaddleBallGame {
 }
 
 fn main() -> GameResult {
-    let (ctx, event_loop) = ggez::ContextBuilder::new("Paddle Ball", "Your Name")
+    let (mut ctx, event_loop) = ggez::ContextBuilder::new("Paddle Ball", "Your Name")
+        .window_mode(ggez::conf::WindowMode::default().dimensions(800.0, 600.0))
         .build()
         .expect("Failed to create ggez context");
 
-    let screen_width = 1000.0;
-    let screen_height = 750.0;
+    let screen_width = 1200.0;
+    let screen_height = 900.0;
+
     let game = PaddleBallGame::new(screen_width, screen_height);
 
     event::run(ctx, event_loop, game)
