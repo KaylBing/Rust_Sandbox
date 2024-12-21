@@ -16,9 +16,9 @@ impl PaddleBallGame {
     fn new(screen_width: f32, screen_height: f32) -> Self {
         PaddleBallGame {
             ball_pos: Vec2::new(screen_width / 2.0, screen_height / 2.0),
-            ball_vel: Vec2::new(300.0, 250.0), // Pixels per second
+            ball_vel: Vec2::new(450.0, 200.0), // Pixels per second
             screen_size: Vec2::new(screen_width, screen_height),
-            ball_radius: 20.0, // Ball radius
+            ball_radius: 18.0, // Ball radius
         }
     }
 }
