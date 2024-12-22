@@ -10,10 +10,18 @@ struct PaddleBallGame {
     ball_vel: Vec2,
     screen_size: Vec2,
     ball_radius: f32,
-    left_paddle: LeftPaddle, // Add LeftPaddle to the game state
+    left_paddle: LeftPaddle,
+    right_paddle: RightPaddle,
 }
 
 struct LeftPaddle {
+    size_x: f32,
+    size_y: f32,
+    position: Vec2,
+    velocity_y: f32, // Only need vertical velocity (positive or negative)
+}
+
+struct RightPaddle {
     size_x: f32,
     size_y: f32,
     position: Vec2,
@@ -24,13 +32,19 @@ impl PaddleBallGame {
     fn new(screen_width: f32, screen_height: f32) -> Self {
         PaddleBallGame {
             ball_pos: Vec2::new(screen_width / 2.0, screen_height / 2.0),
-            ball_vel: Vec2::new(450.0, 200.0), // Ball speed in pixels per second
+            ball_vel: Vec2::new(650.0, 400.0), // Ball speed in pixels per second
             screen_size: Vec2::new(screen_width, screen_height),
             ball_radius: 18.0, // Ball radius
             left_paddle: LeftPaddle {
                 size_x: 10.0,
-                size_y: 100.0,
+                size_y: 150.0,
                 position: Vec2::new(10.0, screen_height / 2.0 - 50.0), // Position of the paddle on the left
+                velocity_y: 0.0, // Paddle starts stationary
+            },
+            right_paddle: RightPaddle {
+                size_x: 10.0,
+                size_y: 150.0,
+                position: Vec2::new(1180.0, screen_height / 2.0 - 50.0), // Position of the paddle on the right
                 velocity_y: 0.0, // Paddle starts stationary
             },
         }
@@ -63,6 +77,17 @@ impl EventHandler for PaddleBallGame {
             self.left_paddle.position.y = self.screen_size.y - self.left_paddle.size_y;
         }
 
+        // Update right paddle position based on velocity
+        self.right_paddle.position.y += self.right_paddle.velocity_y * dt;
+
+        // Keep paddle within screen bounds
+        if self.right_paddle.position.y < 0.0 {
+            self.right_paddle.position.y = 0.0;
+        }
+        if self.right_paddle.position.y + self.right_paddle.size_y > self.screen_size.y {
+            self.right_paddle.position.y = self.screen_size.y - self.right_paddle.size_y;
+        }
+
         Ok(())
     }
 
@@ -88,6 +113,16 @@ impl EventHandler for PaddleBallGame {
             Color::WHITE,
         )?;
         canvas.draw(&left_paddle, DrawParam::default());
+
+        // Draw the right paddle as a rectangle
+        let right_paddle = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(self.right_paddle.position.x, self.right_paddle.position.y, self.right_paddle.size_x, self.right_paddle.size_y),
+            Color::WHITE,
+        )?;
+        canvas.draw(&right_paddle, DrawParam::default());
+
 
         canvas.finish(ctx)?;
         Ok(())
